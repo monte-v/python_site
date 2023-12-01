@@ -1,7 +1,6 @@
 import sys
 import file_handling
 
-
 dict_users = {
     "user1": [0, "pass1", "1@example.com"],
     "user2": [0, "pass2", "2@example.com"],
@@ -54,7 +53,8 @@ def edit_data_users(user, login):
 def edit_dict_users(user: dict):
     try:
         answer_option = 3
-        action = int(input(f"\n{'-' * 30}\n --Изменение списка пользователей--\n1. Добавить\n2. Изменить\n3. Удалить\n--> "))
+        action = int(
+            input(f"\n{'-' * 30}\n --Изменение списка пользователей--\n1. Добавить\n2. Изменить\n3. Удалить\n--> "))
         if answer_option < action > answer_option:
             raise AnswerOptionError
     except (ValueError, AnswerOptionError):
@@ -96,7 +96,8 @@ def session(user: dict):
     if level:
         try:
             answer_option = 1
-            action = int(input(f"\n{'-' * 30}\n --Доступные действия администратора--\n1. Изменение списка пользователей\n--> "))
+            action = int(
+                input(f"\n{'-' * 30}\n --Доступные действия администратора--\n1. Изменение списка пользователей\n--> "))
             if action < answer_option < action:
                 raise AnswerOptionError
         except (ValueError, AnswerOptionError):
@@ -106,10 +107,6 @@ def session(user: dict):
         match action:
             case 1:
                 edit_dict_users(user)
-
-    q = input()
-    if q == "q":
-        sys.exit(3)
 
 
 def edit_password():
