@@ -13,21 +13,14 @@ dict_users = {
 }
 
 
-class Error(Exception):
-    pass
-
-
-class AnswerOptionError(Error):
-    pass
-
-
 def edit_data_users(user, login):
     try:
-        answer_option = 3
-        action = int(input(f"\n{'-' * 30}\n --Изменение данных пользователя--\n1. Логин\n2. Пароль\n3. Email\n--> "))
-        if answer_option < action > answer_option:
-            raise AnswerOptionError
-    except (ValueError, AnswerOptionError):
+        answer_option = ["1. Логин\n", "2. Пароль\n", "3. Email\n"]
+        print(f"\n{'-' * 30}\n --Изменение данных пользователя--\n", *answer_option)
+        action = int(input("--> "))
+        if len(answer_option) < action > len(answer_option):
+            raise ValueError
+    except ValueError:
         print("Введите число из предложенного вам варианта")
         return edit_data_users(user, login)
 
@@ -52,12 +45,12 @@ def edit_data_users(user, login):
 
 def edit_dict_users(user: dict):
     try:
-        answer_option = 3
-        action = int(
-            input(f"\n{'-' * 30}\n --Изменение списка пользователей--\n1. Добавить\n2. Изменить\n3. Удалить\n--> "))
-        if answer_option < action > answer_option:
-            raise AnswerOptionError
-    except (ValueError, AnswerOptionError):
+        answer_option = ["1. Добавить\n", "2. Изменить\n", "3. Удалить\n"]
+        print(f"\n{'-' * 30}\n --Изменение списка пользователей--\n", *answer_option)
+        action = int(input("--> "))
+        if len(answer_option) < action > len(answer_option):
+            raise ValueError
+    except ValueError:
         print("Введите число из предложенного вам варианта")
         return edit_dict_users(user)
 
@@ -99,8 +92,8 @@ def session(user: dict):
             action = int(
                 input(f"\n{'-' * 30}\n --Доступные действия администратора--\n1. Изменение списка пользователей\n--> "))
             if action < answer_option < action:
-                raise AnswerOptionError
-        except (ValueError, AnswerOptionError):
+                raise ValueError
+        except ValueError:
             print("Введите число из предложенного вам варианта")
             return session(user)
 
@@ -124,7 +117,7 @@ def edit_password():
                 main()
             else:
                 print("Неверный email или имя пользователя. Введите email и имя, которые указывали при регистрации")
-                edit_password()
+                continue
         else:
             print("Пользователя с таким логином не существует")
             main()
@@ -133,8 +126,12 @@ def edit_password():
 
 def authorization():
     try:
-        action = int(input(f"\n{'-' * 30}\n --Авторизация--\n1. Войти\n2. Забыл пароль\n3. назад\n--> "))
-    except (ValueError, AnswerOptionError):
+        answer_option = ["1. Войти\n", "2. Забыл пароль\n", "3. назад\n"]
+        print(f"\n{'-' * 30}\n --Авторизация--\n", *answer_option)
+        action = int(input("--> "))
+        if len(answer_option) < action > len(answer_option):
+            raise ValueError
+    except ValueError:
         print("Введите число из предложенного вам варианта")
         return authorization()
     data = file_handling.read_data_from_file()
@@ -183,8 +180,12 @@ def registration():
 
 def main():
     try:
-        action = int(input(f"\n{'-' * 30}\nВойдите в систему\n1. Авторизоваться\n2. Зарегистрироваться\n--> "))
-    except (ValueError, AnswerOptionError):
+        answer_option = ["1. Авторизоваться\n", "2. Зарегистрироваться\n"]
+        print(f"\n{'-' * 30}\nВойдите в систему\n", *answer_option)
+        action = int(input("--> "))
+        if len(answer_option) < action > len(answer_option):
+            raise ValueError
+    except ValueError:
         print("Введите число из предложенного вам варианта")
         return main()
 
