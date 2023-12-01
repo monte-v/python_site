@@ -1,4 +1,6 @@
 import sys
+import file_handling
+
 
 dict_users = {
     "user1": [0, "pass1", "1@example.com"],
@@ -90,7 +92,7 @@ def edit_dict_users(user: dict):
 
 def session(user: dict):
     print(f"Добро пожаловать, ", *user.keys())
-    level = user[0][0]
+    level = user[list(user.keys())[0]][0]
     if level:
         try:
             answer_option = 1
@@ -112,88 +114,88 @@ def session(user: dict):
 
 def edit_password():
     print(f"\n{'-' * 10}\n --Смена пароля-- ")
-    login = input("Логин: ")
-
-    if login in dict_users.keys():
+    data = file_handling.read_data_from_file()
+    while True:
         email = input("Email: ")
+        name = input("Имя: ")
 
-        if email == dict_users[login][2]:
-            password = input("Введите новый пароль: ")  # написать без update
-            users_data = dict_users[login]
-            users_data[1] = password
-            dict_users.update({login: users_data})
-            print("Пароль успешно изменён")
-            main()
+        for user in data:
+            if user["email"] == email and user["name"] == name:
+                new_password = input("Введите новый пароль: ")
+                user["password"] = new_password
+                print("Пароль успешно изменён")
+                main()
+            else:
+                print("Неверный email или имя пользователя. Введите email и имя, которые указывали при регистрации")
+                edit_password()
         else:
-            print("Неверный email. Введите email, который указывали при регистрации")
-            edit_password()
-    else:
-        print("Пользователя с таким логином не существует")
-        main()
+            print("Пользователя с таким логином не существует")
+            main()
+            break
 
 
 def authorization():
     try:
-        qut = int(input(f"\n{'-' * 30}\n --Авторизация--\n1. Войти\n2. Забыл пароль\n3. назад\n--> "))
-    except ValueError:
+        action = int(input(f"\n{'-' * 30}\n --Авторизация--\n1. Войти\n2. Забыл пароль\n3. назад\n--> "))
+    except (ValueError, AnswerOptionError):
         print("Введите число из предложенного вам варианта")
-        authorization()
+        return authorization()
+    data = file_handling.read_data_from_file()
+    attempts = 0
 
-    if qut == 1:
-        login = input("Логин: ")
-        password = input("Пароль: ")
+    match action:
+        case 1:
+            while attempts != 8:
+                email = input("Email: ")
+                password = input("Пароль: ")
 
-        if login in dict_users.keys() and dict_users[login][1] == password:
-            user = {login: dict_users[login]}
-            session(user)
-        else:
-            print("Неверный логин или пароль")
-            authorization()  # Обернуть в while
-    elif qut == 2:
-        edit_password()
-    elif qut == 3:
-        main()
-    else:
-        print("Введите число из предложенного вам варианта")
-        authorization()
+                for user in data:
+                    if user["email"] == email and user["password"] == password:
+                        session(user)
+                else:
+                    print("Неверный логин или пароль")
+                    attempts += 1
+            else:
+                print("Слишком много попыток. Попробуйте авторизоваться позже")
+                sys.exit(3)
+        case 2:
+            edit_password()
+        case 3:
+            main()
 
 
 def registration():
     print(f"\n{'-' * 30}\n --Регистрация--\n")
-
+    data = file_handling.read_data_from_file()
+    existing_emails = [user["email"] for user in data]
     while True:
-        login = input("Логин: ")
-        if login in dict_users.keys():
-            print("Пользователь с таким логином уже существует")
-            continue
-
-        password = input("Пароль: ")
         email = input("Email: ")
-
-        user = {login: [0, password, email]}
-        dict_users.update(user)
+        if email in existing_emails:
+            print("Пользователь с таким адресом электронной почты уже существует.")
+            continue
         break
+    name = input("Имя: ")
+    password = input("Пароль: ")
 
-    session(user)
+    user = {"admin": 0, "email": email, "name": name, "password": password}
+    data.append(user)
+    file_handling.write_data_to_file(data)
+    print('Вы успешно зарегистрировались')
+    return session(user)
 
 
 def main():
     try:
-        qut = int(
-            input(f"\n{'-' * 30}\nВойдите в систему\n1. Авторизоваться\n2. Зарегистрироваться\n3. Как гость\n--> "))
-    except ValueError:
+        action = int(input(f"\n{'-' * 30}\nВойдите в систему\n1. Авторизоваться\n2. Зарегистрироваться\n--> "))
+    except (ValueError, AnswerOptionError):
         print("Введите число из предложенного вам варианта")
-        main()
+        return main()
 
-    if qut == 1:
-        authorization()
-    elif qut == 2:
-        registration()
-    elif qut == 3:
-        session({"guest": [0, " ", " "]})
-    else:
-        print("Введите число из предложенного вам варианта")
-        main()
+    match action:
+        case 1:
+            authorization()
+        case 2:
+            registration()
 
 
 if __name__ == '__main__':
