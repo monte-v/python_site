@@ -1,5 +1,6 @@
 import sys
 import file_handling
+from tabulate import tabulate
 
 dict_users = {
     "user1": [0, "pass1", "1@example.com"],
@@ -13,17 +14,23 @@ dict_users = {
 }
 
 
-def edit_data_users(user, login):
+def edit_data_users(user_session, user):
     try:
-        answer_option = ["1. Логин\n", "2. Пароль\n", "3. Email\n"]
-        print(f"\n{'-' * 30}\n --Изменение данных пользователя--\n", *answer_option)
-        action = int(input("--> "))
-        if len(answer_option) < action > len(answer_option):
+        answer_option = 1
+        print(f"\n{'-' * 30}\n --Изменение данных пользователя--\n")
+        print(tabulate
+              ({"Ключ": list(user.keys())[1:],
+                "Значение": list(user.values())[1:]}, headers="keys", tablefmt="presto"))
+        action = input("Ключ --> ")
+        if action not in list(user.keys()):
             raise ValueError
     except ValueError:
-        print("Введите число из предложенного вам варианта")
-        return edit_data_users(user, login)
-
+        print("Введите ключ из предложенного вам варианта")
+        return edit_data_users(user_session, user)
+    data = file_handling.read_data_from_file()
+    new_entry = input("Введите новое значение\n--> ")
+    for us in data:
+        if us["email"] == user["email"]:
     match action:
         case 1:
             while True:
@@ -40,10 +47,10 @@ def edit_data_users(user, login):
             new_email = input("Новый Email: ")
             dict_users[login][2] = new_email
 
-    return session(user)
+    return session(user_session)
 
 
-def edit_dict_users(user: dict):
+def edit_list_users(user_session: dict):
     try:
         answer_option = ["1. Добавить\n", "2. Изменить\n", "3. Удалить\n"]
         print(f"\n{'-' * 30}\n --Изменение списка пользователей--\n", *answer_option)
@@ -52,54 +59,55 @@ def edit_dict_users(user: dict):
             raise ValueError
     except ValueError:
         print("Введите число из предложенного вам варианта")
-        return edit_dict_users(user)
-
-    while True:
-        login = input("Введите логин пользователя: ")
-        if login not in dict_users.keys():
-            print("Пользователь с таким логином не существует")
-            continue
-
-        if action == 2:
-            edit_data_users(user, login)
-            break
-        elif action == 3:
-            del dict_users[login]
-            break
+        return edit_list_users(user_session)
+    data = file_handling.read_data_from_file()
+    existing_emails = [user["email"] for user in data]
 
     if action == 1:
+        new_user = registration()
+        print(data_users for data_users in new_user)
+        return session(user_session)
+    else:
         while True:
-            login = input("Логин: ")
-            if login in dict_users.keys():
-                print("Пользователь с таким логином уже существует")
+            email = input("Введите email пользователя: ")
+            if email not in existing_emails:
+                print("Пользователь с таким адресом электронной почты не существует")
                 continue
-
-            password = input("Пароль: ")
-            email = input("Email: ")
-
-            dict_users[login] = [0, password, email]
+            break
+        for user in data:
+            if email == user["email"]:
+                if action == 2:
+                    edit_data_users(user_session, email)
+                elif action == 3:
+                    while True:
+                        confirmation = input("Вы уверены (д/н)?\n--> ").lower()
+                        if confirmation != 'д' or confirmation != 'н':
+                            print("Попробуйте еще раз\n")
+                            continue
+                        break
+                    if confirmation == 'д':
+                        data.remove(user)
+                        file_handling.write_data_to_file(data)
             break
 
-    return session(user)
 
-
-def session(user: dict):
-    print(f"Добро пожаловать, ", *user.keys())
-    level = user[list(user.keys())[0]][0]
+def session(user_session: dict):
+    print(f"Добро пожаловать, {user_session['name']}")
+    level = user_session["admin"]
     if level:
         try:
-            answer_option = 1
-            action = int(
-                input(f"\n{'-' * 30}\n --Доступные действия администратора--\n1. Изменение списка пользователей\n--> "))
-            if action < answer_option < action:
+            answer_option = ["1. Изменение списка пользователей"]
+            print(f"\n{'-' * 30}\n --Доступные действия администратора--\n", *answer_option)
+            action = int(input("--> "))
+            if len(answer_option) < action > len(answer_option):
                 raise ValueError
         except ValueError:
             print("Введите число из предложенного вам варианта")
-            return session(user)
+            return session(user_session)
 
         match action:
             case 1:
-                edit_dict_users(user)
+                edit_list_users(user_session)
 
 
 def edit_password():
@@ -175,7 +183,7 @@ def registration():
     data.append(user)
     file_handling.write_data_to_file(data)
     print('Вы успешно зарегистрировались')
-    return session(user)
+    return user
 
 
 def main():
@@ -193,7 +201,8 @@ def main():
         case 1:
             authorization()
         case 2:
-            registration()
+            user = registration()
+            session(user)
 
 
 if __name__ == '__main__':
