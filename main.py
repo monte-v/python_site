@@ -2,27 +2,15 @@ import sys
 import file_handling
 from tabulate import tabulate
 
-dict_users = {
-    "user1": [0, "pass1", "1@example.com"],
-    "user2": [0, "pass2", "2@example.com"],
-    "user3": [0, "pass3", "3@example.com"],
-    "user4": [0, "pass4", "4@example.com"],
-    "user5": [0, "pass5", "5@example.com"],
-    "admin1": [1, "admin1", "a1@example.com"],
-    "admin2": [1, "admin2", "a2@example.com"],
-    "admin3": [1, "admin3", "a3@example.com"],
-}
-
 
 def edit_data_users(user_session, user):
     try:
-        answer_option = 1
         print(f"\n{'-' * 30}\n --Изменение данных пользователя--\n")
         print(tabulate
               ({"Ключ": list(user.keys())[1:],
                 "Значение": list(user.values())[1:]}, headers="keys", tablefmt="presto"))
-        action = input("Ключ --> ")
-        if action not in list(user.keys()):
+        key = input("Ключ --> ")
+        if key not in list(user.keys()):
             raise ValueError
     except ValueError:
         print("Введите ключ из предложенного вам варианта")
@@ -31,21 +19,20 @@ def edit_data_users(user_session, user):
     new_entry = input("Введите новое значение\n--> ")
     for us in data:
         if us["email"] == user["email"]:
-    match action:
-        case 1:
-            while True:
-                new_login = input("Введите новый логин: ")
-                if new_login in dict_users.keys():
-                    print("Пользователь с таким логином уже существует")
-                    continue
-                dict_users[new_login] = dict_users.pop(login)
-                break
-        case 2:
-            new_password = input("Новый пароль: ")
-            dict_users[login][1] = new_password
-        case 3:
-            new_email = input("Новый Email: ")
-            dict_users[login][2] = new_email
+            us[key] = new_entry
+            file_handling.write_data_to_file(data)
+            user = us
+            print("Данные пользователя успешно обновлены\n")
+            break
+
+    while True:
+        confirmation = input("Желаете еще что-нибудь изменить (д/н)?\n--> ").lower()
+        if confirmation != 'д' or confirmation != 'н':
+            print("Попробуйте еще раз\n")
+            continue
+        elif confirmation == 'д':
+            edit_data_users(user_session, user)
+        break
 
     return session(user_session)
 
@@ -77,17 +64,17 @@ def edit_list_users(user_session: dict):
         for user in data:
             if email == user["email"]:
                 if action == 2:
-                    edit_data_users(user_session, email)
+                    edit_data_users(user_session, user)
                 elif action == 3:
                     while True:
                         confirmation = input("Вы уверены (д/н)?\n--> ").lower()
                         if confirmation != 'д' or confirmation != 'н':
                             print("Попробуйте еще раз\n")
                             continue
+                        elif confirmation == 'д':
+                            data.remove(user)
+                            file_handling.write_data_to_file(data)
                         break
-                    if confirmation == 'д':
-                        data.remove(user)
-                        file_handling.write_data_to_file(data)
             break
 
 
