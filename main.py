@@ -2,57 +2,105 @@ import sys
 import file_handling
 from tabulate import tabulate
 
+OUTLINE_HEADERS = 34  # qty simbols
+
+
+def print_header(header: str, answer_option=None):
+    """
+    Функция красиво выводит заголовок и варианты действий пользователя
+
+    :param header: Заголовок
+    :param answer_option: Варианты действий пользователя list
+    """
+
+    if answer_option:
+        print("-" * OUTLINE_HEADERS, " " * int((OUTLINE_HEADERS - len(header)) / 2) + header, "-" * OUTLINE_HEADERS,
+              *answer_option, sep="\n", end="\n\n")
+    else:
+        print("-" * OUTLINE_HEADERS, " " * int((OUTLINE_HEADERS - len(header)) / 2) + header, "-" * OUTLINE_HEADERS,
+              sep="\n")
+
+
+def request_user_actions(header="", answer_option=None):
+    """
+    Функция запрашивает действия пользователя
+
+    :param header: Заголовок
+    :param answer_option: Варианты действий пользователя list
+    :return: Выбранный пользователем вариант
+    """
+    try:
+        if header:
+            print_header(header, answer_option)
+            action = int(input("--> "))
+            if len(answer_option) < action > len(answer_option):
+                raise ValueError
+        else:
+            action = int(input("--> "))
+        return action
+    except ValueError:
+        print("ERROR: Неверный ввод данных")
+        return 0
+
 
 def edit_data_users(user_session, user):
-    try:
-        print(f"\n{'-' * 30}\n --Изменение данных пользователя--\n")
-        print(tabulate
-              ({"Ключ": list(user.keys())[1:],
-                "Значение": list(user.values())[1:]}, headers="keys", tablefmt="presto"))
+    """
+    Функция изменения данных пользователя, админом.
+
+    :param user_session: Данные, вошедшего в систему, пользователя (админа)
+    :param user: Данные пользователя, которые будут изменяться
+    """
+
+    print_header("Изменение данных пользователя")
+    print(tabulate
+          ({"Ключ": list(user.keys())[1:],
+            "Значение": list(user.values())[1:]}, headers="keys", tablefmt="presto"), end="\n\n")
+    while True:
         key = input("Ключ --> ")
         if key not in list(user.keys()):
-            raise ValueError
-    except ValueError:
-        print("Введите ключ из предложенного вам варианта")
-        return edit_data_users(user_session, user)
+            print("Введите ключ из предложенного вам варианта")
+            continue
+        break
+
     data = file_handling.read_data_from_file()
-    new_entry = input("Введите новое значение\n--> ")
+    new_entry = input("Введите новое значение --> ")
+
     for us in data:
         if us["email"] == user["email"]:
             us[key] = new_entry
             file_handling.write_data_to_file(data)
             user = us
-            print("Данные пользователя успешно обновлены\n")
+            print("\nДанные пользователя успешно обновлены\n")
             break
 
     while True:
-        confirmation = input("Желаете еще что-нибудь изменить (д/н)?\n--> ").lower()
-        if confirmation != 'д' or confirmation != 'н':
+        confirmation = input("Желаете еще что-нибудь изменить (д/н)? --> ").lower()
+        if confirmation == 'д':
+            return edit_data_users(user_session, user)
+        elif confirmation == 'н':
+            return session(user_session)
+        else:
             print("Попробуйте еще раз\n")
             continue
-        elif confirmation == 'д':
-            edit_data_users(user_session, user)
-        break
-
-    return session(user_session)
 
 
 def edit_list_users(user_session: dict):
-    try:
-        answer_option = ["1. Добавить\n", "2. Изменить\n", "3. Удалить\n"]
-        print(f"\n{'-' * 30}\n --Изменение списка пользователей--\n", *answer_option)
-        action = int(input("--> "))
-        if len(answer_option) < action > len(answer_option):
-            raise ValueError
-    except ValueError:
-        print("Введите число из предложенного вам варианта")
+    """
+    Функция, изменяющая database.json, в связи, с выбранным пользователем (админом), действием.
+
+    :param user_session: Данные, вошедшего в систему, пользователя (админа)
+    """
+
+    action = request_user_actions("Изменение списка пользователей", ["1. Добавить", "2. Изменить", "3. Удалить"])
+    if not action:
         return edit_list_users(user_session)
+
     data = file_handling.read_data_from_file()
     existing_emails = [user["email"] for user in data]
 
     if action == 1:
         new_user = registration()
-        print(data_users for data_users in new_user)
+        print(f"{new_user['name']} успешно зарегистрирован")
         return session(user_session)
     else:
         while True:
@@ -67,68 +115,82 @@ def edit_list_users(user_session: dict):
                     edit_data_users(user_session, user)
                 elif action == 3:
                     while True:
-                        confirmation = input("Вы уверены (д/н)?\n--> ").lower()
-                        if confirmation != 'д' or confirmation != 'н':
-                            print("Попробуйте еще раз\n")
-                            continue
-                        elif confirmation == 'д':
-                            data.remove(user)
+                        confirmation = input("Вы уверены (д/н)? --> ").lower()
+                        if confirmation == 'д':
+                            data.pop(data.index(user))
                             file_handling.write_data_to_file(data)
-                        break
-            break
+                            print("\nПользователь удален")
+                            return session(user_session)
+                        elif confirmation == 'н':
+                            return session(user_session)
+                        else:
+                            print("Неверный ввод данных\n")
+                            continue
 
 
 def session(user_session: dict):
-    print(f"Добро пожаловать, {user_session['name']}")
+    """
+    Текущая сессия пользователя.
+
+    :param user_session: Данные, вошедшего в систему, пользователя
+    """
+
     level = user_session["admin"]
+
     if level:
-        try:
-            answer_option = ["1. Изменение списка пользователей"]
-            print(f"\n{'-' * 30}\n --Доступные действия администратора--\n", *answer_option)
-            action = int(input("--> "))
-            if len(answer_option) < action > len(answer_option):
-                raise ValueError
-        except ValueError:
-            print("Введите число из предложенного вам варианта")
+        action = request_user_actions("Доступные действия администратора",
+                                      ["1. Изменение списка пользователей", "2. Выход из аккаунта",
+                                       "3. Завершить сессию"])
+        if not action:
             return session(user_session)
 
         match action:
             case 1:
                 edit_list_users(user_session)
+            case 2:
+                main()
+            case 3:
+                sys.exit(3)
 
 
 def edit_password():
-    print(f"\n{'-' * 10}\n --Смена пароля-- ")
+    """
+    Функция изменения пароля, в случае его утери.
+    """
+
+    print_header("Смена пароля")
+
     data = file_handling.read_data_from_file()
+
     while True:
         email = input("Email: ")
-        name = input("Имя: ")
+        name = input("Имя пользователя: ")
 
         for user in data:
             if user["email"] == email and user["name"] == name:
                 new_password = input("Введите новый пароль: ")
                 user["password"] = new_password
-                print("Пароль успешно изменён")
-                main()
-            else:
-                print("Неверный email или имя пользователя. Введите email и имя, которые указывали при регистрации")
-                continue
+                file_handling.write_data_to_file(data)
+                print("\nПароль успешно изменён")
+                return main()
         else:
-            print("Пользователя с таким логином не существует")
+            print("\nНеверный email или имя пользователя")
             main()
-            break
 
 
 def authorization():
-    try:
-        answer_option = ["1. Войти\n", "2. Забыл пароль\n", "3. назад\n"]
-        print(f"\n{'-' * 30}\n --Авторизация--\n", *answer_option)
-        action = int(input("--> "))
-        if len(answer_option) < action > len(answer_option):
-            raise ValueError
-    except ValueError:
-        print("Введите число из предложенного вам варианта")
+    """
+    Функция реализации входа пользователя в свой аккаунт.
+
+    Пользователь входит если верно введёт email и пароль, который указывал при регистрации (данный в database.json).
+    Если было совершено 8 попыток входа, то система завершает. У пользователя есть возможность восстановить свой
+    аккаунт, выбрав соответствующее действие.
+    """
+
+    action = request_user_actions("Авторизация", ["1. Войти", "2. Забыл пароль", "3. Назад"])
+    if not action:
         return authorization()
+
     data = file_handling.read_data_from_file()
     attempts = 0
 
@@ -140,9 +202,10 @@ def authorization():
 
                 for user in data:
                     if user["email"] == email and user["password"] == password:
-                        session(user)
+                        print(f"\nДобро пожаловать, {user['name']}")
+                        return session(user)
                 else:
-                    print("Неверный логин или пароль")
+                    print("Неверный email или пароль\n")
                     attempts += 1
             else:
                 print("Слишком много попыток. Попробуйте авторизоваться позже")
@@ -154,9 +217,15 @@ def authorization():
 
 
 def registration():
-    print(f"\n{'-' * 30}\n --Регистрация--\n")
+    """
+    Функция добавляет нового пользователя в database.json
+
+    :return: данные добавленного пользователя
+    """
+
     data = file_handling.read_data_from_file()
     existing_emails = [user["email"] for user in data]
+
     while True:
         email = input("Email: ")
         if email in existing_emails:
@@ -169,26 +238,24 @@ def registration():
     user = {"admin": 0, "email": email, "name": name, "password": password}
     data.append(user)
     file_handling.write_data_to_file(data)
-    print('Вы успешно зарегистрировались')
+
     return user
 
 
 def main():
-    try:
-        answer_option = ["1. Авторизоваться\n", "2. Зарегистрироваться\n"]
-        print(f"\n{'-' * 30}\nВойдите в систему\n", *answer_option)
-        action = int(input("--> "))
-        if len(answer_option) < action > len(answer_option):
-            raise ValueError
-    except ValueError:
-        print("Введите число из предложенного вам варианта")
+    action = request_user_actions("SHOP", ["1. Войти", "2. Зарегистрироваться"])
+    if not action:
         return main()
 
     match action:
         case 1:
             authorization()
         case 2:
+            header = "Регистрация"
+            print_header(header)
             user = registration()
+            print('Вы успешно зарегистрировались')
+            print(f"\nДобро пожаловать, {user['name']}\n")
             session(user)
 
 

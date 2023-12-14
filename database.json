@@ -1,26 +1,32 @@
 [
     {
-      "admin": 1,
-      "email": "admin@example.com",
-      "name": "Sergey",
-      "password": "admin"
+        "admin": 1,
+        "email": "admin@example.com",
+        "name": "Sergey",
+        "password": "admin"
     },
     {
-      "admin": 0,
-      "email": "user123@example.com",
-      "name": "andrey",
-      "password": "pass"
-    },
-  {
-      "admin": 1,
-      "email": "admin1@example.com",
-      "name": "mr. Anderson",
-      "password": "1234"
+        "admin": 0,
+        "email": "user123@example.com",
+        "name": "andrey",
+        "password": "pass"
     },
     {
-      "admin": 0,
-      "email": "G@example.com",
-      "name": "Gwinblade",
-      "password": "ww"
+        "admin": 1,
+        "email": "admin1@example.com",
+        "name": "mr. Anderson",
+        "password": "1234"
+    },
+    {
+        "admin": 0,
+        "email": "G@example.com",
+        "name": "Gwinblade",
+        "password": "ww"
+    },
+    {
+        "admin": 1,
+        "email": "1",
+        "name": "Dima",
+        "password": "11"
     }
 ]
