@@ -7,7 +7,7 @@ OUTLINE_HEADERS = 34  # qty simbols
 
 def print_header(header: str, answer_option=None):
     """
-    Функция красиво выводит заголовок и варианты действий пользователя
+    Функция выводит заголовок и варианты действий пользователя
 
     :param header: Заголовок
     :param answer_option: Варианты действий пользователя list
